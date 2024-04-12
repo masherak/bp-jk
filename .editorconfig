@@ -1,0 +1,13 @@
+# http://editorconfig.org
+root = true
+
+[*.{cs,vb}]
+indent_style = tab
+indent_size = tab
+end_of_line = crlf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+# Sort using and Import directives with System.* appearing first
+dotnet_sort_system_directives_first = true
+dotnet_style_require_accessibility_modifiers = always:warning
