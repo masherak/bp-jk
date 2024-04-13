@@ -9,6 +9,11 @@ public class PredictionService
 	private ITransformer? _transformer;
 	private readonly MLContext _context = new();
 
+	public bool IsTrained()
+	{
+		return _transformer != null;
+	}
+
 	public async Task TrainAsync()
 	{
 		_transformer = await Predictor.TrainAsync();

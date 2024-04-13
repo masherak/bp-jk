@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PredictorApp", "PredictorApp\PredictorApp.csproj", "{3DA0F74B-0CA9-4483-84F0-6A4A9633653B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{89734866-6B69-4A79-8E18-D5840C545882}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{3DA0F74B-0CA9-4483-84F0-6A4A9633653B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DA0F74B-0CA9-4483-84F0-6A4A9633653B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DA0F74B-0CA9-4483-84F0-6A4A9633653B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89734866-6B69-4A79-8E18-D5840C545882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89734866-6B69-4A79-8E18-D5840C545882}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89734866-6B69-4A79-8E18-D5840C545882}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89734866-6B69-4A79-8E18-D5840C545882}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
