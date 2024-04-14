@@ -1,5 +1,6 @@
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 using WebApp.Components;
 using WebApp.Services;
 
@@ -8,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("InMemoryDatabase"));
 
