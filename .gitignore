@@ -296,3 +296,6 @@ Thumbs.db
 Frontend/dist/
 Frontend/node_modules/
 Frontend/src/**/*.jsx
+
+# Ignore local development settings
+*/appsettings.Development.json

@@ -1,21 +1,103 @@
 ﻿@page "/"
+@inject ApplicationDbContext Context
+@inject PredictionService PredictionService
 
 <PageTitle>Student Outcome Predictor</PageTitle>
 
 <MudGrid>
     <MudItem xs="12" sm="6" md="4">
         <MudPaper Elevation="1" Class="pa-4">
-            Item 1
+            @if (PredictionService.IsTrained())
+            {
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color: green; font-size: 48px;" />
+            }
+            else
+            {
+                <MudIcon Icon="@Icons.Material.Filled.ChangeCircle" Style="color: red; font-size: 48px;" />
+                
+                <MudButton OnClick="OnClickTrainAsync" Variant="Variant.Filled" Color="Color.Primary">
+                    Click Me
+                </MudButton>
+            }
         </MudPaper>
     </MudItem>
-    <MudItem xs="12" sm="6" md="4">
-        <MudPaper Elevation="1" Class="pa-4">
-            Item 2
-        </MudPaper>
-    </MudItem>
-    <MudItem xs="12" sm="6" md="4">
-        <MudPaper Elevation="1" Class="pa-4">
-            Item 3
-        </MudPaper>
-    </MudItem>
+    @if (PredictionService.IsTrained())
+    {
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="1" Class="pa-4">
+                <MudSelect T="string" Label="Vyberte studijní obor" @bind-Value="_selectedStudyField" @onchange="SetSubjectsAsync">
+                    @foreach(var studyField in _studyFields)
+                    {
+                        <MudSelectItem Value="@studyField" />
+                    }
+                </MudSelect>
+                
+                @if (!string.IsNullOrWhiteSpace(_selectedStudyField))
+                {
+                    <MudSelect T="int?" Label="Vyberte ročník" @bind-Value="_selectedYear">
+                        @foreach(var year in _years)
+                        {
+                            <MudSelectItem Value="@year" />
+                        }
+                    </MudSelect>
+                    
+                    <MudSelect T="string" Label="Vyberte předmět" @bind-Value="_selectedSubject">
+                        @foreach (var subject in _subjects)
+                        {
+                            <MudSelectItem Value="@subject"/>
+                        }
+                    </MudSelect>
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudPaper Elevation="1" Class="pa-4">
+                Item 3
+            </MudPaper>
+        </MudItem>
+    }
 </MudGrid>
+
+<MudOverlay Visible="@_isTaskRunning">
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+</MudOverlay>
+
+@code {
+    private bool _isTaskRunning;
+    
+    
+    string? _selectedStudyField;
+    ICollection<string>? _studyFields;
+    
+    int? _selectedYear;
+    ICollection<int>? _years;
+    
+    string? _selectedSubject;
+    ICollection<string>? _subjects;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _studyFields = await Context.StudyFields.Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
+
+        _years = await Context.Years.Select(_ => _.Year).OrderBy(_ => _).ToListAsync();
+    }
+
+    async Task SetSubjectsAsync()
+    {
+        _subjects = await Context.Subjects.Where(_ => _.StudyField.Name == _selectedStudyField).Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
+    }
+
+    async Task OnClickTrainAsync()
+    {
+        try
+        {
+            _isTaskRunning = true;
+            
+            await PredictionService.TrainAsync();
+        }
+        finally
+        {
+            _isTaskRunning = false;
+        }
+    }
+}

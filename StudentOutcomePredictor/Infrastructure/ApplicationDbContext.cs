@@ -13,18 +13,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
+		modelBuilder.Entity<StudyField>().HasKey(_ => _.Id);
+		modelBuilder.Entity<StudyField>().Property(_ => _.Name).IsRequired();
 		modelBuilder.Entity<StudyField>().HasData(
 			new StudyField { Id = 1, Name = "Business Management" },
 			new StudyField { Id = 2, Name = "Softwarový vývoj" }
 		);
 
+		modelBuilder.Entity<StudyYear>().HasKey(_ => _.Id);
 		modelBuilder.Entity<StudyYear>().HasData(
 			new StudyYear { Id = 1, Year = 1 },
 			new StudyYear { Id = 2, Year = 2 },
 			new StudyYear { Id = 3, Year = 3 }
 		);
 
-
+		modelBuilder.Entity<Subject>().HasKey(_ => _.Id);
+		modelBuilder.Entity<Subject>().Property(_ => _.Name).IsRequired();
+		modelBuilder.Entity<Subject>().HasOne(_ => _.StudyField).WithMany(_ => _.Subjects).HasForeignKey(_ => _.StudyFieldId);
 		modelBuilder.Entity<Subject>().HasData(
 			new Subject { Id = 1, Name = "Anglický jazyk", StudyFieldId = 1 },
 			new Subject { Id = 2, Name = "Finance", StudyFieldId = 1 },
