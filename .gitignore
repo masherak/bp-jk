@@ -299,3 +299,4 @@ Frontend/src/**/*.jsx
 
 # Ignore local development settings
 */appsettings.Development.json
+StudentOutcomePredictor/WebApp/appsettings.Development.json

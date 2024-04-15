@@ -1,90 +1,153 @@
 ﻿@page "/"
 @inject ApplicationDbContext Context
 @inject PredictionService PredictionService
+@rendermode InteractiveServer
 
-<PageTitle>Student Outcome Predictor</PageTitle>
+<PageTitle>Prediktor studijních výsledků</PageTitle>
 
 <MudGrid>
     <MudItem xs="12" sm="6" md="4">
         <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                ML Model
+                @if (PredictionService.IsTrained())
+                {
+                    <MudIcon Color="Color.Success" Size="Size.Medium" Icon="@Icons.Material.Filled.CheckCircle"/>
+                }
+                else
+                {
+                    <MudIcon Color="Color.Error" Size="Size.Medium" Icon="@Icons.Material.Filled.ChangeCircle"/>
+                }
+            </MudText>
+            
+            <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
+            
             @if (PredictionService.IsTrained())
             {
-                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color: green; font-size: 48px;" />
+                <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                    Připraven
+                </MudText>
             }
             else
             {
-                <MudIcon Icon="@Icons.Material.Filled.ChangeCircle" Style="color: red; font-size: 48px;" />
-                
-                <MudButton OnClick="OnClickTrainAsync" Variant="Variant.Filled" Color="Color.Primary">
-                    Click Me
+                <MudButton Disabled="@_isTaskRunning" OnClick="OnClickTrainAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                    @if (_isTaskRunning)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Typo="Typo.h6" Class="ms-2">Zpracovávám...</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h6">Zpracovat</MudText>
+                    }
                 </MudButton>
             }
         </MudPaper>
     </MudItem>
+
     @if (PredictionService.IsTrained())
     {
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Elevation="1" Class="pa-4">
-                <MudSelect T="string" Label="Vyberte studijní obor" @bind-Value="_selectedStudyField" @onchange="SetSubjectsAsync">
-                    @foreach(var studyField in _studyFields)
+                <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                    Data
+                </MudText>
+
+                <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
+
+                <MudSelect T="string?" Label="Vyberte studijní obor" ValueChanged="OnChangeStudyFieldAsync">
+                    @if (_studyFields != null)
                     {
-                        <MudSelectItem Value="@studyField" />
+                        foreach (var studyField in _studyFields)
+                        {
+                            <MudSelectItem T="string?" Value="@studyField"/>
+                        }
                     }
                 </MudSelect>
-                
+
                 @if (!string.IsNullOrWhiteSpace(_selectedStudyField))
                 {
-                    <MudSelect T="int?" Label="Vyberte ročník" @bind-Value="_selectedYear">
-                        @foreach(var year in _years)
+                    <MudSelect T="int?" Label="Vyberte ročník" ValueChanged="OnChangeSelectedYear">
+                        @if (_years != null)
                         {
-                            <MudSelectItem Value="@year" />
+                            foreach (var year in _years)
+                            {
+                                <MudSelectItem T="int?" Value="@year"/>
+                            }
                         }
                     </MudSelect>
-                    
-                    <MudSelect T="string" Label="Vyberte předmět" @bind-Value="_selectedSubject">
-                        @foreach (var subject in _subjects)
+
+                    <MudSelect T="string?" Label="Vyberte předmět" @bind-Value="_selectedSubject">
+                        @if (_subjects != null)
                         {
-                            <MudSelectItem Value="@subject"/>
+                            foreach (var subject in _subjects)
+                            {
+                                <MudSelectItem T="string?" Value="@subject"/>
+                            }
                         }
                     </MudSelect>
+
+                    @if (_selectedYear.HasValue)
+                    {
+                        <MudSelect T="int?" Label="Vyberte věk" @bind-Value="_selectedAge">
+                            @foreach (var age in _ages)
+                            {
+                                <MudSelectItem T="int?" Value="@(age.Value + _selectedYear.Value)"/>
+                            }
+                        </MudSelect>
+                    }
+                }
+
+                @if (_selectedAge.HasValue && !string.IsNullOrWhiteSpace(_selectedStudyField) && _selectedYear.HasValue && !string.IsNullOrWhiteSpace(_selectedSubject))
+                {
+                    <MudButton Style="margin-top: 25px" StartIcon="@Icons.Material.Filled.Send" IconColor="Color.Success" IconSize="Size.Large" OnClick="OnClickPredictAsync" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">
+                        <MudText Typo="Typo.h6">Predict Grade</MudText>
+                    </MudButton>
                 }
             </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="1" Class="pa-4">
-                Item 3
-            </MudPaper>
-        </MudItem>
+        
+        @if (_predictedGrade.HasValue)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="1" Class="pa-4">
+                    <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                        Prediction
+                    </MudText>
+
+                    <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
+
+                    <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                        <b>@Math.Round(_predictedGrade.Value, 2)</b>
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        }
     }
 </MudGrid>
-
-<MudOverlay Visible="@_isTaskRunning">
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-</MudOverlay>
 
 @code {
     private bool _isTaskRunning;
     
+    int? _selectedAge;
+    readonly ICollection<int?> _ages = Enumerable.Range(18, 52).Select(_ => (int?)_).ToList();
     
     string? _selectedStudyField;
     ICollection<string>? _studyFields;
     
     int? _selectedYear;
-    ICollection<int>? _years;
+    ICollection<int?>? _years;
     
     string? _selectedSubject;
     ICollection<string>? _subjects;
+
+    float? _predictedGrade;
     
     protected override async Task OnInitializedAsync()
     {
         _studyFields = await Context.StudyFields.Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
 
-        _years = await Context.Years.Select(_ => _.Year).OrderBy(_ => _).ToListAsync();
-    }
-
-    async Task SetSubjectsAsync()
-    {
-        _subjects = await Context.Subjects.Where(_ => _.StudyField.Name == _selectedStudyField).Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
+        _years = await Context.Years.Select(_ => (int?)_.Year).OrderBy(_ => _).ToListAsync();
     }
 
     async Task OnClickTrainAsync()
@@ -100,4 +163,28 @@
             _isTaskRunning = false;
         }
     }
+    
+    async Task OnChangeStudyFieldAsync(string? value)
+    {
+        _selectedStudyField = value;
+
+        _selectedSubject = null;
+        
+        _subjects = await Context.Subjects.Where(_ => _.StudyField.Name == value).Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
+    }
+
+    void OnChangeSelectedYear(int? value)
+    {
+        _selectedYear = value;
+
+        _selectedAge = null;
+    }
+
+    async Task OnClickPredictAsync()
+    {
+        _predictedGrade = PredictionService.PredictGrade(_selectedAge.Value, _selectedStudyField, _selectedYear.Value, _selectedSubject);
+
+        // TODO: Database store
+    }
+
 }
