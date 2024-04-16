@@ -5,5 +5,5 @@ namespace PredictorApp.Models;
 public record Output
 {
 	[ColumnName("Score")]
-	public float PredictedGrade { get; set; }
+	public float[] PredictedGrades { get; set; }
 }

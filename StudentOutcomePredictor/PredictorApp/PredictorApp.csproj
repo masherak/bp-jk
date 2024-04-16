@@ -3,17 +3,30 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>disable</Nullable>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+      <PackageReference Include="Microsoft.ML.FastTree" Version="3.0.1" />
       <PackageReference Include="Microsoft.ML.LightGbm" Version="3.0.1" />
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="student_data.csv" />
       <Content Include="student_data.csv">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="student_data_2.csv" />
+      <Content Include="student_data_2.csv">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="student_data_3.csv" />
+      <Content Include="student_data_3.csv">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="student_data_4.csv" />
+      <Content Include="student_data_4.csv">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>

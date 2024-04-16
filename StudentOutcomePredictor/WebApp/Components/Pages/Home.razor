@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject ApplicationDbContext Context
 @inject PredictionService PredictionService
+@inject ISnackbar Snackbar
 @rendermode InteractiveServer
 
 <PageTitle>Prediktor studijních výsledků</PageTitle>
@@ -8,7 +9,7 @@
 <MudGrid>
     <MudItem xs="12" sm="6" md="4">
         <MudPaper Elevation="1" Class="pa-4">
-            <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+            <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
                 ML Model
                 @if (PredictionService.IsTrained())
                 {
@@ -24,9 +25,21 @@
             
             @if (PredictionService.IsTrained())
             {
-                <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
-                    Připraven
-                </MudText>
+                if (_metrics != null)
+                {
+                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                        Macro accuracy: @_metrics.MacroAccuracy.Round()
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                        Micro accuracy: @_metrics.MicroAccuracy.Round()
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                        Log-loss: @_metrics.LogLoss.Round()
+                    </MudText>
+                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                        Log-loss reduction: @_metrics.LogLossReduction.Round()
+                    </MudText>
+                }
             }
             else
             {
@@ -34,11 +47,11 @@
                     @if (_isTaskRunning)
                     {
                         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                        <MudText Typo="Typo.h6" Class="ms-2">Zpracovávám...</MudText>
+                        <MudText Typo="Typo.button" Class="ms-2">Trénuji...</MudText>
                     }
                     else
                     {
-                        <MudText Typo="Typo.h6">Zpracovat</MudText>
+                        <MudText Typo="Typo.button">Trénovat</MudText>
                     }
                 </MudButton>
             }
@@ -49,7 +62,7 @@
     {
         <MudItem xs="12" sm="6" md="4">
             <MudPaper Elevation="1" Class="pa-4">
-                <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
                     Data
                 </MudText>
 
@@ -100,25 +113,25 @@
 
                 @if (_selectedAge.HasValue && !string.IsNullOrWhiteSpace(_selectedStudyField) && _selectedYear.HasValue && !string.IsNullOrWhiteSpace(_selectedSubject))
                 {
-                    <MudButton Style="margin-top: 25px" StartIcon="@Icons.Material.Filled.Send" IconColor="Color.Success" IconSize="Size.Large" OnClick="OnClickPredictAsync" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">
-                        <MudText Typo="Typo.h6">Predict Grade</MudText>
+                    <MudButton Style="margin-top: 25px" OnClick="OnClickPredictAsync" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">
+                        <MudText Typo="Typo.button">Predict Grade</MudText>
                     </MudButton>
                 }
             </MudPaper>
         </MudItem>
         
-        @if (_predictedGrade.HasValue)
+        @if (_predictionResult != null)
         {
             <MudItem xs="12" sm="6" md="4">
                 <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                    <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
                         Prediction
                     </MudText>
 
                     <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
 
                     <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
-                        <b>@Math.Round(_predictedGrade.Value, 2)</b>
+                        Predicted Grade: <b>@_predictionResult.PredictedGrade</b>
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -130,7 +143,7 @@
     private bool _isTaskRunning;
     
     int? _selectedAge;
-    readonly ICollection<int?> _ages = Enumerable.Range(18, 52).Select(_ => (int?)_).ToList();
+    readonly ICollection<int?> _ages = Enumerable.Range(17, 14).Select(_ => (int?)_).ToList();
     
     string? _selectedStudyField;
     ICollection<string>? _studyFields;
@@ -141,13 +154,17 @@
     string? _selectedSubject;
     ICollection<string>? _subjects;
 
-    float? _predictedGrade;
+    MulticlassClassificationMetrics? _metrics;
+
+    PredictionResult? _predictionResult;
     
     protected override async Task OnInitializedAsync()
     {
         _studyFields = await Context.StudyFields.Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
 
         _years = await Context.Years.Select(_ => (int?)_.Year).OrderBy(_ => _).ToListAsync();
+
+        _metrics = PredictionService.GetMetrics();
     }
 
     async Task OnClickTrainAsync()
@@ -156,7 +173,7 @@
         {
             _isTaskRunning = true;
             
-            await PredictionService.TrainAsync();
+            _metrics = await PredictionService.TrainAsync();
         }
         finally
         {
@@ -182,9 +199,31 @@
 
     async Task OnClickPredictAsync()
     {
-        _predictedGrade = PredictionService.PredictGrade(_selectedAge.Value, _selectedStudyField, _selectedYear.Value, _selectedSubject);
+        _predictionResult = PredictionService.PredictGrade(_selectedAge.Value, _selectedStudyField, _selectedYear.Value, _selectedSubject);
 
-        // TODO: Database store
+        var predictionHistory = new PredictionHistory
+        {
+            StudyFieldId = await Context.StudyFields
+                .Where(_ => _.Name == _selectedStudyField)
+                .Select(_ => _.Id)
+                .SingleAsync(),
+            YearId = await Context.Years
+                .Where(_ => _.Year == _selectedYear.Value)
+                .Select(_ => _.Id)
+                .SingleAsync(),
+            SubjectId = await Context.Subjects
+                .Where(_ => _.Name == _selectedSubject && _.StudyField.Name == _selectedStudyField)
+                .Select(_ => _.Id)
+                .SingleAsync(),
+            PredictedGrade = _predictionResult.PredictedGrade,
+            Created = DateTime.UtcNow
+        };
+
+        await Context.PredictionHistories.AddAsync(predictionHistory);
+
+        await Context.SaveChangesAsync();
+
+        Snackbar.Add("Záznam uložen", Severity.Success);
     }
 
 }

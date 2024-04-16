@@ -9,4 +9,6 @@ public class Subject
 	public int StudyFieldId { get; set; }
 
 	public StudyField StudyField { get; set; }
+
+	public ICollection<PredictionHistory> PredictionHistories { get; set; }
 }

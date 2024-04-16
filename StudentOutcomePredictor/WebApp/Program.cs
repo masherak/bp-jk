@@ -1,8 +1,9 @@
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using MudBlazor.Services;
+using PredictorApp.Services;
 using WebApp.Components;
-using WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(_ =>
+{
+	_.SnackbarConfiguration.ShowTransitionDuration = 300;
+	_.SnackbarConfiguration.HideTransitionDuration = 300;
+	_.SnackbarConfiguration.VisibleStateDuration = 1000;
+	_.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
+	_.SnackbarConfiguration.PreventDuplicates = false;
+	_.SnackbarConfiguration.NewestOnTop = false;
+	_.SnackbarConfiguration.ShowCloseIcon = true;
+	_.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

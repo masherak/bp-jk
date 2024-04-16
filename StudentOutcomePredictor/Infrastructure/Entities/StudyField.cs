@@ -7,4 +7,6 @@ public class StudyField
 	public string Name { get; set; }
 
 	public ICollection<Subject> Subjects { get; set; }
+
+	public ICollection<PredictionHistory> PredictionHistories { get; set; }
 }

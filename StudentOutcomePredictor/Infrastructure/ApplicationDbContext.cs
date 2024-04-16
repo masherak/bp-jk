@@ -11,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
 	public DbSet<StudyYear> Years { get; set; }
 
+	public DbSet<PredictionHistory> PredictionHistories { get; set; }
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<StudyField>().HasKey(_ => _.Id);
@@ -59,5 +61,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 			new Subject { Id = 26, Name = "Umělá inteligence", StudyFieldId = 2 },
 			new Subject { Id = 27, Name = "Web Development", StudyFieldId = 2 }
 		);
+
+		modelBuilder.Entity<PredictionHistory>().HasKey(_ => _.Id);
+		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.StudyField).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.StudyFieldId).OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.Year).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.YearId).OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.Subject).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.SubjectId).OnDelete(DeleteBehavior.Restrict);
 	}
 }
