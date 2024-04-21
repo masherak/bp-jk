@@ -2,7 +2,6 @@ namespace PredictorApp;
 
 public static class PredictorHelper
 {
-	public static readonly string DataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "student_data_4.csv");
 	public const string StudentIdInputOutputColumnName = "StudentId";
 	public const string AgeInputOutputColumnName = "Age";
 	public const string FieldOfStudyInputColumnName = "FieldOfStudy";

@@ -1,3 +1,4 @@
+using Infrastructure.Enums;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using PredictorApp.Models;
@@ -7,16 +8,38 @@ namespace PredictorApp.Services;
 public class PredictionService
 {
 	private TrainingResult? _trainingResult;
+	private string? _datasetName;
+	private PipelineTypeEnum? _pipelineType;
+	private TrainerTypeEnum? _trainerType;
+
 	private readonly MLContext _context = new();
+
+	public string? GetDatasetName => _datasetName;
+
+	public PipelineTypeEnum? GetPipelineType => _pipelineType;
+
+	public TrainerTypeEnum? GetTrainerType => _trainerType;
 
 	public bool IsTrained()
 	{
 		return _trainingResult != null;
 	}
 
-	public async Task<MulticlassClassificationMetrics> TrainAsync()
+	public void Reset()
 	{
-		_trainingResult = await Predictor.TrainAsync();
+		_trainingResult = null;
+		_datasetName = null;
+		_pipelineType = null;
+		_trainerType = null;
+	}
+
+	public async Task<MulticlassClassificationMetrics> TrainAsync(byte[] dataset, string datasetName, PipelineTypeEnum pipelineType, TrainerTypeEnum trainerType)
+	{
+		_datasetName = datasetName;
+		_pipelineType = pipelineType;
+		_trainerType = trainerType;
+
+		_trainingResult = await Task.Run(() => Predictor.Train(dataset, pipelineType, trainerType));
 
 		return _trainingResult.Metrics;
 	}

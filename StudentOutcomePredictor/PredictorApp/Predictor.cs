@@ -1,19 +1,24 @@
-﻿using Microsoft.ML;
+﻿using System.Text;
+using Infrastructure.Enums;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using PredictorApp.Models;
+using PredictorApp.Sources;
 
 namespace PredictorApp;
 
 public static class Predictor
 {
-    public static async Task<TrainingResult> TrainAsync()
+	// TODO:
+    public static TrainingResult Train(byte[] dataset, PipelineTypeEnum pipelineType, TrainerTypeEnum trainerType)
     {
         var mlContext = new MLContext();
 
-        var trainingDataView = mlContext.Data.LoadFromTextFile<Input>(
-            path: PredictorHelper.DataPath,
-            hasHeader: true,
-            separatorChar: ',');
+        var inMemoryMultiStreamSource = new InMemoryMultiStreamSource(dataset);
+
+        var textLoader = mlContext.Data.CreateTextLoader<Input>(hasHeader: true, separatorChar: ',');
+
+        var trainingDataView = textLoader.Load(inMemoryMultiStreamSource);
 
         var dataProcessPipeline = mlContext.Transforms.Conversion
 	        .MapValueToKey(PredictorHelper.Label, PredictorHelper.GradeInputOutputColumnName)
@@ -47,7 +52,7 @@ public static class Predictor
 
         var trainingPipeline = dataProcessPipeline.Append(oneVersusAllTrainer);
 
-        var transformer = await Task.Run(() => trainingPipeline.Fit(trainingDataView));
+        var transformer = trainingPipeline.Fit(trainingDataView);
 
         var predictions = transformer.Transform(trainingDataView);
 

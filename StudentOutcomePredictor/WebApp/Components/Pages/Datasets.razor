@@ -44,6 +44,15 @@
                     <MudTd>@context.Name</MudTd>
                     <MudTd>@context.ParsedDateTime</MudTd>
                 </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>Neexistují žádné záznamy</MudText>
+                </NoRecordsContent>
+                <LoadingContent>
+                    <MudText>Nahrávám...</MudText>
+                </LoadingContent>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
             </MudTable>
 
         </MudPaper>
@@ -85,10 +94,25 @@
             }
             
             await using var stream = file.OpenReadStream(100_000_000);
-        
+
             var buffer = new byte[file.Size];
-        
-            await stream.ReadAsync(buffer, 0, (int)file.Size);
+            var totalBytesRead = 0;
+            var bytesRead = 0;
+            
+            while ((bytesRead = await stream.ReadAsync(buffer, totalBytesRead, buffer.Length - totalBytesRead)) > 0)
+            {
+                totalBytesRead += bytesRead;
+
+                if (totalBytesRead == file.Size)
+                {
+                    break;
+                }
+            }
+
+            if (totalBytesRead != file.Size)
+            {
+                throw new InvalidOperationException("Could not read the file completely.");
+            }
         
             var datasetFile = new DatasetFile
             {

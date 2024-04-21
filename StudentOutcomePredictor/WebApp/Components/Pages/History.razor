@@ -1,0 +1,74 @@
+﻿@page "/history"
+@using WebApp.Models
+@inject ApplicationDbContext Context
+@rendermode InteractiveServer
+
+<MudGrid>
+    <MudItem xs="12" sm="12" md="12">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
+                Historie predikcí
+            </MudText>
+            
+            <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
+
+            <MudTable Items="_items" Dense>
+                <HeaderContent>
+                    <MudTh>Dataset</MudTh>
+                    <MudTh>Pipeline</MudTh>
+                    <MudTh>Trenér</MudTh>
+                    <MudTh>Věk</MudTh>
+                    <MudTh>Obor</MudTh>
+                    <MudTh>Ročník</MudTh>
+                    <MudTh>Předmět</MudTh>
+                    <MudTh>Predikovaná známka</MudTh>
+                    <MudTh>Vytvořeno</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.DatasetName</MudTd>
+                    <MudTd>@context.PipelineType</MudTd>
+                    <MudTd>@context.TrainerType</MudTd>
+                    <MudTd>@context.Age</MudTd>
+                    <MudTd>@context.StudyFieldName</MudTd>
+                    <MudTd>@context.StudyYear</MudTd>
+                    <MudTd>@context.SubjectName</MudTd>
+                    <MudTd>@context.PredictedGrade</MudTd>
+                    <MudTd>@context.ParsedCreated</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>Neexistují žádné záznamy</MudText>
+                </NoRecordsContent>
+                <LoadingContent>
+                    <MudText>Nahrávám...</MudText>
+                </LoadingContent>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+            
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    private ICollection<PredictionHistoryItem> _items = new List<PredictionHistoryItem>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await Context.PredictionHistories
+            .OrderByDescending(_ => _.Created)
+            .Select(_ => new PredictionHistoryItem
+            {
+                DatasetName = _.DatasetFile.Name,
+                PipelineType = _.PipelineType.Name,
+                TrainerType = _.TrainerType.Name,
+                Age = _.Age,
+                StudyFieldName = _.StudyField.Name,
+                StudyYear = _.Year.Year,
+                SubjectName = _.Subject.Name,
+                PredictedGrade = _.PredictedGrade,
+                Created = _.Created
+            }).ToListAsync();
+    }
+}

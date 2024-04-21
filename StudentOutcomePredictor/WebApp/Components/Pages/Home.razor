@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Infrastructure.Enums
 @inject ApplicationDbContext Context
 @inject PredictionService PredictionService
 @inject ISnackbar Snackbar
@@ -23,35 +24,86 @@
             
             @if (PredictionService.IsTrained())
             {
+                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                    <b class="mr-2">Dataset: </b> @PredictionService.GetDatasetName
+                </MudText>
+                
+                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                    <b class="mr-2">Pipeline: </b> @PredictionService.GetPipelineType
+                </MudText>
+                
+                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                    <b class="mr-2">Trainer: </b> @PredictionService.GetTrainerType
+                </MudText>
+                
+                <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
+                
                 if (_metrics != null)
                 {
                     <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        Macro accuracy: @_metrics.MacroAccuracy.Round()
+                        <b class="mr-2">Macro accuracy: </b> @_metrics.MacroAccuracy.Round()
                     </MudText>
                     <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        Micro accuracy: @_metrics.MicroAccuracy.Round()
+                        <b class="mr-2">Micro accuracy: </b> @_metrics.MicroAccuracy.Round()
                     </MudText>
                     <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        Log-loss: @_metrics.LogLoss.Round()
+                        <b class="mr-2">Log-loss: </b> @_metrics.LogLoss.Round()
                     </MudText>
                     <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        Log-loss reduction: @_metrics.LogLossReduction.Round()
+                        <b class="mr-2">Log-loss reduction: </b> @_metrics.LogLossReduction.Round()
                     </MudText>
                 }
+                
+                <MudButton Style="margin-top: 25px" OnClick="ResetModel" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                    Reset
+                </MudButton>
             }
             else
             {
-                <MudButton Disabled="@_isTaskRunning" OnClick="OnClickTrainAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                    @if (_isTaskRunning)
+                <MudSelect T="string?" Label="Vyberte dataset" @bind-Value="_selectedDataset">
+                    @if (_datasets != null)
                     {
-                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                        <MudText Typo="Typo.button" Class="ms-2">Trénuji...</MudText>
+                        foreach (var dataset in _datasets)
+                        {
+                            <MudSelectItem T="string?" Value="@dataset"/>
+                        }
                     }
-                    else
+                </MudSelect>
+                
+                <MudSelect T="string?" Label="Vyberte pipeline" @bind-Value="_selectedPipeline">
+                    @if (_pipelines != null)
                     {
-                        <MudText Typo="Typo.button">Trénovat</MudText>
+                        foreach (var pipeline in _pipelines)
+                        {
+                            <MudSelectItem T="string?" Value="@pipeline"/>
+                        }
                     }
-                </MudButton>
+                </MudSelect>
+                
+                <MudSelect T="string?" Label="Vyberte trenéra" @bind-Value="_selectedTrainer">
+                    @if (_trainers != null)
+                    {
+                        foreach (var trainer in _trainers)
+                        {
+                            <MudSelectItem T="string?" Value="@trainer"/>
+                        }
+                    }
+                </MudSelect>
+
+                @if (!string.IsNullOrWhiteSpace(_selectedDataset) && !string.IsNullOrWhiteSpace(_selectedPipeline) && !string.IsNullOrWhiteSpace(_selectedTrainer))
+                {
+                    <MudButton  Style="margin-top: 25px" Disabled="@_isTaskRunning" OnClick="OnClickTrainAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                        @if (_isTaskRunning)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Typo="Typo.button" Class="ms-2">Trénuji...</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.button">Trénovat</MudText>
+                        }
+                    </MudButton>
+                }
             }
         </MudPaper>
     </MudItem>
@@ -111,8 +163,8 @@
 
                 @if (_selectedAge.HasValue && !string.IsNullOrWhiteSpace(_selectedStudyField) && _selectedYear.HasValue && !string.IsNullOrWhiteSpace(_selectedSubject))
                 {
-                    <MudButton Style="margin-top: 25px" OnClick="OnClickPredictAsync" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">
-                        <MudText Typo="Typo.button">Predict Grade</MudText>
+                    <MudButton Style="margin-top: 25px" OnClick="OnClickPredictAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                        <MudText Typo="Typo.button">Predikuj známku</MudText>
                     </MudButton>
                 }
             </MudPaper>
@@ -129,7 +181,7 @@
                     <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
 
                     <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
-                        Predicted Grade: <b>@_predictionResult.PredictedGrade</b>
+                        Predicted Grade: <b class="ml-2">@_predictionResult.PredictedGrade</b>
                     </MudText>
                 </MudPaper>
             </MudItem>
@@ -139,6 +191,15 @@
 
 @code {
     private bool _isTaskRunning;
+
+    string? _selectedDataset;
+    ICollection<string>? _datasets;
+    
+    string? _selectedPipeline;
+    ICollection<string>? _pipelines;
+    
+    string? _selectedTrainer;
+    ICollection<string>? _trainers;
     
     int? _selectedAge;
     readonly ICollection<int?> _ages = Enumerable.Range(17, 14).Select(_ => (int?)_).ToList();
@@ -158,6 +219,12 @@
     
     protected override async Task OnInitializedAsync()
     {
+        _datasets = await Context.DatasetFiles.OrderByDescending(_ => _.Created).Select(_ => _.Name).ToListAsync();
+
+        _pipelines = await Context.PipelineTypes.Select(_ => _.Name).ToListAsync();
+
+        _trainers = await Context.TrainerTypes.Select(_ => _.Name).ToListAsync();
+        
         _studyFields = await Context.StudyFields.Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
 
         _years = await Context.Years.Select(_ => (int?)_.Year).OrderBy(_ => _).ToListAsync();
@@ -170,8 +237,14 @@
         try
         {
             _isTaskRunning = true;
+
+            var datasetContent = await Context.DatasetFiles.Where(_ => _.Name == _selectedDataset).Select(_ => _.Content).SingleAsync();
+
+            var pipelineType = Enum.Parse<PipelineTypeEnum>(_selectedPipeline ?? string.Empty);
+
+            var trainerType = Enum.Parse<TrainerTypeEnum>(_selectedTrainer ?? string.Empty);
             
-            _metrics = await PredictionService.TrainAsync();
+            _metrics = await PredictionService.TrainAsync(datasetContent, _selectedDataset, pipelineType, trainerType);
         }
         finally
         {
@@ -201,6 +274,12 @@
 
         var predictionHistory = new PredictionHistory
         {
+            DatasetFileId = await Context.DatasetFiles
+                .Where(_ => _.Name == PredictionService.GetDatasetName)
+                .Select(_ => _.Id)
+                .SingleAsync(),
+            PipelineTypeId = PredictionService.GetPipelineType.Value,
+            TrainerTypeId = PredictionService.GetTrainerType.Value,
             StudyFieldId = await Context.StudyFields
                 .Where(_ => _.Name == _selectedStudyField)
                 .Select(_ => _.Id)
@@ -213,6 +292,7 @@
                 .Where(_ => _.Name == _selectedSubject && _.StudyField.Name == _selectedStudyField)
                 .Select(_ => _.Id)
                 .SingleAsync(),
+            Age = _selectedAge.Value,
             PredictedGrade = _predictionResult.PredictedGrade,
             Created = DateTime.UtcNow
         };
@@ -224,4 +304,16 @@
         Snackbar.Add("Záznam uložen", Severity.Success);
     }
 
+    void ResetModel()
+    {
+        _selectedAge = null;
+        _selectedStudyField = null;
+        _selectedYear = null;
+        _selectedSubject = null;
+        
+        _predictionResult = null;
+        _metrics = null;
+        
+        PredictionService.Reset();
+    }
 }

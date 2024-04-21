@@ -29,6 +29,8 @@ public class PredictionHistory
 	public int SubjectId { get; set; }
 
 	public Subject Subject { get; set; }
+	
+	public int Age { get; set; }
 
 	public float PredictedGrade { get; set; }
 
