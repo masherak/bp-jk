@@ -13,17 +13,19 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddMudServices(_ =>
 {
-	_.SnackbarConfiguration.ShowTransitionDuration = 300;
-	_.SnackbarConfiguration.HideTransitionDuration = 300;
-	_.SnackbarConfiguration.VisibleStateDuration = 1000;
-	_.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
+	_.SnackbarConfiguration.ShowTransitionDuration = 400;
+	_.SnackbarConfiguration.HideTransitionDuration = 400;
+	_.SnackbarConfiguration.VisibleStateDuration = 2000;
+	_.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
 	_.SnackbarConfiguration.PreventDuplicates = false;
 	_.SnackbarConfiguration.NewestOnTop = false;
 	_.SnackbarConfiguration.ShowCloseIcon = true;
 	_.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services
+	.AddDbContext<ApplicationDbContext>(options =>
+		options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSingleton<PredictionService>();
 

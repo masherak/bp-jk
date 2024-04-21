@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240416164523_AddTablePredictionHistory")]
-    partial class AddTablePredictionHistory
+    [Migration("20240421093405_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,50 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Infrastructure.Entities.DatasetFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DatasetFiles");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.PipelineType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PipelineTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Default"
+                        });
+                });
 
             modelBuilder.Entity("Infrastructure.Entities.PredictionHistory", b =>
                 {
@@ -36,6 +80,12 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("DatasetFileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PipelineTypeId")
+                        .HasColumnType("int");
+
                     b.Property<float>("PredictedGrade")
                         .HasColumnType("real");
 
@@ -45,14 +95,23 @@ namespace Infrastructure.Migrations
                     b.Property<int>("SubjectId")
                         .HasColumnType("int");
 
+                    b.Property<int>("TrainerTypeId")
+                        .HasColumnType("int");
+
                     b.Property<int>("YearId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DatasetFileId");
+
+                    b.HasIndex("PipelineTypeId");
+
                     b.HasIndex("StudyFieldId");
 
                     b.HasIndex("SubjectId");
+
+                    b.HasIndex("TrainerTypeId");
 
                     b.HasIndex("YearId");
 
@@ -307,8 +366,41 @@ namespace Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Infrastructure.Entities.TrainerType", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TrainerTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "OvaWithAveragedPerceptron"
+                        });
+                });
+
             modelBuilder.Entity("Infrastructure.Entities.PredictionHistory", b =>
                 {
+                    b.HasOne("Infrastructure.Entities.DatasetFile", "DatasetFile")
+                        .WithMany("PredictionHistories")
+                        .HasForeignKey("DatasetFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Entities.PipelineType", "PipelineType")
+                        .WithMany("PredictionHistories")
+                        .HasForeignKey("PipelineTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Infrastructure.Entities.StudyField", "StudyField")
                         .WithMany("PredictionHistories")
                         .HasForeignKey("StudyFieldId")
@@ -321,15 +413,27 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Infrastructure.Entities.TrainerType", "TrainerType")
+                        .WithMany("PredictionHistories")
+                        .HasForeignKey("TrainerTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Infrastructure.Entities.StudyYear", "Year")
                         .WithMany("PredictionHistories")
                         .HasForeignKey("YearId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("DatasetFile");
+
+                    b.Navigation("PipelineType");
+
                     b.Navigation("StudyField");
 
                     b.Navigation("Subject");
+
+                    b.Navigation("TrainerType");
 
                     b.Navigation("Year");
                 });
@@ -345,6 +449,16 @@ namespace Infrastructure.Migrations
                     b.Navigation("StudyField");
                 });
 
+            modelBuilder.Entity("Infrastructure.Entities.DatasetFile", b =>
+                {
+                    b.Navigation("PredictionHistories");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.PipelineType", b =>
+                {
+                    b.Navigation("PredictionHistories");
+                });
+
             modelBuilder.Entity("Infrastructure.Entities.StudyField", b =>
                 {
                     b.Navigation("PredictionHistories");
@@ -358,6 +472,11 @@ namespace Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Infrastructure.Entities.Subject", b =>
+                {
+                    b.Navigation("PredictionHistories");
+                });
+
+            modelBuilder.Entity("Infrastructure.Entities.TrainerType", b =>
                 {
                     b.Navigation("PredictionHistories");
                 });

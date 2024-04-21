@@ -1,10 +1,18 @@
 using Infrastructure.Entities;
+using Infrastructure.Enums;
+using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
+	public DbSet<DatasetFile> DatasetFiles { get; set; }
+
+	public DbSet<PipelineType> PipelineTypes { get; set; }
+
+	public DbSet<TrainerType> TrainerTypes { get; set; }
+
 	public DbSet<StudyField> StudyFields { get; set; }
 
 	public DbSet<Subject> Subjects { get; set; }
@@ -62,9 +70,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 			new Subject { Id = 27, Name = "Web Development", StudyFieldId = 2 }
 		);
 
+		modelBuilder.AddEnumTable<TrainerType, TrainerTypeEnum>();
+		modelBuilder.AddEnumTable<PipelineType, PipelineTypeEnum>();
+
+		modelBuilder.Entity<DatasetFile>().HasKey(_ => _.Id);
+		modelBuilder.Entity<DatasetFile>().Property(_ => _.Name).IsRequired();
+
 		modelBuilder.Entity<PredictionHistory>().HasKey(_ => _.Id);
 		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.StudyField).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.StudyFieldId).OnDelete(DeleteBehavior.Restrict);
 		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.Year).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.YearId).OnDelete(DeleteBehavior.Restrict);
 		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.Subject).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.SubjectId).OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.DatasetFile).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.DatasetFileId).OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.PipelineType).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.PipelineTypeId).OnDelete(DeleteBehavior.Restrict);
+		modelBuilder.Entity<PredictionHistory>().HasOne(_ => _.TrainerType).WithMany(_ => _.PredictionHistories).HasForeignKey(_ => _.TrainerTypeId).OnDelete(DeleteBehavior.Restrict);
 	}
 }

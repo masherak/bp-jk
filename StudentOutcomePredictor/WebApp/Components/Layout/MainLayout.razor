@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
+<PageTitle>Prediktor studijních výsledků</PageTitle>
+
 <MudThemeProvider Theme="new MudTheme()" IsDarkMode="true" />
 <MudDialogProvider/>
 <MudSnackbarProvider/>
@@ -10,9 +12,14 @@
     </MudAppBar>
     <MudDrawer ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Mini">
         <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Filled.Dashboard" Text="Dashboard" />
+            <MudNavLink Href="/datasets" Icon="@Icons.Filled.FileUpload" Text="Datasets" />
+            <MudNavLink Href="/history" Icon="@Icons.Filled.History" Text="Prediction History" />
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>
-        @Body
+        <MudContainer>
+            @Body
+        </MudContainer>
     </MudMainContent>
 </MudLayout>
