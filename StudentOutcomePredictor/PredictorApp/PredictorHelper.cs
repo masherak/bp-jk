@@ -2,7 +2,6 @@ namespace PredictorApp;
 
 public static class PredictorHelper
 {
-	public const string StudentIdInputOutputColumnName = "StudentId";
 	public const string AgeInputOutputColumnName = "Age";
 	public const string FieldOfStudyInputColumnName = "FieldOfStudy";
 	public const string EncodedFieldOfStudyOutputColumnName = "EncodedFieldOfStudy";

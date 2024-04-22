@@ -54,7 +54,7 @@
                     </MudText>
                 }
                 
-                <MudButton Style="margin-top: 25px" OnClick="ResetModel" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                <MudButton Disabled="_isTaskRunning" Style="margin-top: 25px" OnClick="ResetModel" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
                     Reset
                 </MudButton>
             }
@@ -163,7 +163,7 @@
 
                 @if (_selectedAge.HasValue && !string.IsNullOrWhiteSpace(_selectedStudyField) && _selectedYear.HasValue && !string.IsNullOrWhiteSpace(_selectedSubject))
                 {
-                    <MudButton Style="margin-top: 25px" OnClick="OnClickPredictAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                    <MudButton Disabled="_isTaskRunning" Style="margin-top: 25px" OnClick="OnClickPredictAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
                         <MudText Typo="Typo.button">Predikuj známku</MudText>
                     </MudButton>
                 }
@@ -188,6 +188,10 @@
         }
     }
 </MudGrid>
+
+<MudOverlay Visible="_isTaskRunning">
+    <MudProgressCircular Size="Size.Large" Indeterminate="true" Color="Color.Primary" />
+</MudOverlay>
 
 @code {
     private bool _isTaskRunning;
@@ -270,38 +274,51 @@
 
     async Task OnClickPredictAsync()
     {
-        _predictionResult = PredictionService.PredictGrade(_selectedAge.Value, _selectedStudyField, _selectedYear.Value, _selectedSubject);
-
-        var predictionHistory = new PredictionHistory
+        try
         {
-            DatasetFileId = await Context.DatasetFiles
-                .Where(_ => _.Name == PredictionService.GetDatasetName)
-                .Select(_ => _.Id)
-                .SingleAsync(),
-            PipelineTypeId = PredictionService.GetPipelineType.Value,
-            TrainerTypeId = PredictionService.GetTrainerType.Value,
-            StudyFieldId = await Context.StudyFields
-                .Where(_ => _.Name == _selectedStudyField)
-                .Select(_ => _.Id)
-                .SingleAsync(),
-            YearId = await Context.Years
-                .Where(_ => _.Year == _selectedYear.Value)
-                .Select(_ => _.Id)
-                .SingleAsync(),
-            SubjectId = await Context.Subjects
-                .Where(_ => _.Name == _selectedSubject && _.StudyField.Name == _selectedStudyField)
-                .Select(_ => _.Id)
-                .SingleAsync(),
-            Age = _selectedAge.Value,
-            PredictedGrade = _predictionResult.PredictedGrade,
-            Created = DateTime.UtcNow
-        };
+            _isTaskRunning = true;
 
-        await Context.PredictionHistories.AddAsync(predictionHistory);
+            _predictionResult = PredictionService.PredictGrade(_selectedAge.Value, _selectedStudyField, _selectedYear.Value, _selectedSubject);
 
-        await Context.SaveChangesAsync();
+            var predictionHistory = new PredictionHistory
+            {
+                DatasetFileId = await Context.DatasetFiles
+                    .Where(_ => _.Name == PredictionService.GetDatasetName)
+                    .Select(_ => _.Id)
+                    .SingleAsync(),
+                PipelineTypeId = PredictionService.GetPipelineType.Value,
+                TrainerTypeId = PredictionService.GetTrainerType.Value,
+                StudyFieldId = await Context.StudyFields
+                    .Where(_ => _.Name == _selectedStudyField)
+                    .Select(_ => _.Id)
+                    .SingleAsync(),
+                YearId = await Context.Years
+                    .Where(_ => _.Year == _selectedYear.Value)
+                    .Select(_ => _.Id)
+                    .SingleAsync(),
+                SubjectId = await Context.Subjects
+                    .Where(_ => _.Name == _selectedSubject && _.StudyField.Name == _selectedStudyField)
+                    .Select(_ => _.Id)
+                    .SingleAsync(),
+                Age = _selectedAge.Value,
+                PredictedGrade = _predictionResult.PredictedGrade,
+                Created = DateTime.UtcNow
+            };
 
-        Snackbar.Add("Záznam uložen", Severity.Success);
+            await Context.PredictionHistories.AddAsync(predictionHistory);
+
+            await Context.SaveChangesAsync();
+
+            Snackbar.Add("Záznam uložen", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Nastal problém - {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isTaskRunning = false;
+        }
     }
 
     void ResetModel()

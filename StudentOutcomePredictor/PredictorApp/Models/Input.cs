@@ -5,20 +5,17 @@ namespace PredictorApp.Models;
 public record Input
 {
     [LoadColumn(0)]
-    public int StudentId { get; set; }
-
-    [LoadColumn(1)]
     public int Age { get; set; }
 
-    [LoadColumn(2)]
+    [LoadColumn(1)]
     public string FieldOfStudy { get; set; }
 
-    [LoadColumn(3)]
+    [LoadColumn(2)]
     public int Year { get; set; }
 
-    [LoadColumn(4)]
+    [LoadColumn(3)]
     public string Subject { get; set; }
 
-    [LoadColumn(5)]
+    [LoadColumn(4)]
     public float Grade { get; set; }
 }
