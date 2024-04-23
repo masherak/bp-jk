@@ -183,6 +183,15 @@
                     <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
                         Predicted Grade: <b class="ml-2">@_predictionResult.PredictedGrade</b>
                     </MudText>
+
+                    <MudDivider Style="margin-top: 25px;margin-bottom: 25px"/>
+
+                    @foreach (var gradeProbability in _predictionResult.GradePredictionProbabilities)
+                    {
+                        <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                            Grade: @gradeProbability.Grade (@gradeProbability.Probability.Round()%)
+                        </MudText>
+                    }
                 </MudPaper>
             </MudItem>
         }

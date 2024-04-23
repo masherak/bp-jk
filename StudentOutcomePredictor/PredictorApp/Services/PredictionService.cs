@@ -63,15 +63,17 @@ public class PredictionService
 
 		var output = predictionEngine.Predict(input);
 
-		var maxProbability = output.PredictedGrades.Max();
-
-		var predictedClassIndex = Array.IndexOf(output.PredictedGrades, maxProbability);
-
-		var predictedGrade = predictedClassIndex + 1;
-
 		return new PredictionResult
 		{
-			PredictedGrade = predictedGrade,
+			PredictedGrade = Array.IndexOf(output.PredictedGrades, output.PredictedGrades.Max()) + 1,
+			GradePredictionProbabilities = output.PredictedGrades
+				.Select((_, i) => new GradePredictionProbability
+				{
+					Grade = i + 1,
+					Probability = (_ / output.PredictedGrades.Sum() * 100)
+				})
+				.OrderBy(_ => _.Grade)
+				.ToList(),
 			Metrics = _trainingResult.Metrics
 		};
 	}
