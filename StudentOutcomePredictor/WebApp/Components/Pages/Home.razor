@@ -85,7 +85,7 @@
                     {
                         foreach (var trainer in _trainers)
                         {
-                            <MudSelectItem T="string?" Value="@trainer"/>
+                            <MudSelectItem Disabled="@(trainer != TrainerTypeEnum.OvaWithAveragedPerceptron.ToString())" T="string?" Value="@trainer"/>
                         }
                     }
                 </MudSelect>
