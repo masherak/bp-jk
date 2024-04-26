@@ -383,27 +383,22 @@ namespace Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "OvaWithAveragedPerceptron"
+                            Name = "PairwiseCouplingWithFastForest"
                         },
                         new
                         {
                             Id = 2,
-                            Name = "OvaWithSdcaNonCalibrated"
+                            Name = "OneVersusAllWithFastForest"
                         },
                         new
                         {
                             Id = 3,
-                            Name = "LightGbmMulti"
+                            Name = "PairwiseCouplingWithAveragedPerceptron"
                         },
                         new
                         {
                             Id = 4,
-                            Name = "NaiveBayes"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "SdcaMaximumEntropy"
+                            Name = "OneVersusAllWithAveragedPerceptron"
                         });
                 });
 

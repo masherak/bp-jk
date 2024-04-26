@@ -73,17 +73,18 @@ public static class Predictor
     {
 	    return trainerType switch
 	    {
-		    TrainerTypeEnum.OvaWithAveragedPerceptron => mlContext.MulticlassClassification.Trainers
+		    TrainerTypeEnum.PairwiseCouplingWithFastForest => mlContext.MulticlassClassification.Trainers
+			    .PairwiseCoupling(mlContext.BinaryClassification.Trainers
+				    .FastForest()),
+		    TrainerTypeEnum.OneVersusAllWithFastForest => mlContext.MulticlassClassification.Trainers
+			    .OneVersusAll(mlContext.BinaryClassification.Trainers
+				    .FastForest()),
+		    TrainerTypeEnum.PairwiseCouplingWithAveragedPerceptron => mlContext.MulticlassClassification.Trainers
+			    .PairwiseCoupling(mlContext.BinaryClassification.Trainers
+				    .AveragedPerceptron()),
+		    TrainerTypeEnum.OneVersusAllWithAveragedPerceptron => mlContext.MulticlassClassification.Trainers
 			    .OneVersusAll(mlContext.BinaryClassification.Trainers
 				    .AveragedPerceptron()),
-		    TrainerTypeEnum.OvaWithSdcaNonCalibrated => mlContext.MulticlassClassification.Trainers
-			    .OneVersusAll(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated()),
-		    TrainerTypeEnum.LightGbmMulti => mlContext.MulticlassClassification.Trainers
-			    .LightGbm(),
-		    TrainerTypeEnum.NaiveBayes => mlContext.MulticlassClassification.Trainers
-			    .NaiveBayes(),
-		    TrainerTypeEnum.SdcaMaximumEntropy => mlContext.MulticlassClassification.Trainers
-			    .SdcaMaximumEntropy(),
 		    _ => throw new ArgumentOutOfRangeException(nameof(trainerType), trainerType, null)
 	    };
     }

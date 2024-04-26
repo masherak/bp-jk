@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240421203719_AddNextTrainerTypes")]
-    partial class AddNextTrainerTypes
+    [Migration("20240426202445_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -386,27 +386,22 @@ namespace Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "OvaWithAveragedPerceptron"
+                            Name = "PairwiseCouplingWithFastForest"
                         },
                         new
                         {
                             Id = 2,
-                            Name = "OvaWithSdcaNonCalibrated"
+                            Name = "OneVersusAllWithFastForest"
                         },
                         new
                         {
                             Id = 3,
-                            Name = "LightGbmMulti"
+                            Name = "PairwiseCouplingWithAveragedPerceptron"
                         },
                         new
                         {
                             Id = 4,
-                            Name = "NaiveBayes"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "SdcaMaximumEntropy"
+                            Name = "OneVersusAllWithAveragedPerceptron"
                         });
                 });
 

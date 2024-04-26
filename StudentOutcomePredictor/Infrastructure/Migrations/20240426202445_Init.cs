@@ -172,7 +172,13 @@ namespace Infrastructure.Migrations
             migrationBuilder.InsertData(
                 table: "TrainerTypes",
                 columns: new[] { "Id", "Name" },
-                values: new object[] { 1, "OvaWithAveragedPerceptron" });
+                values: new object[,]
+                {
+                    { 1, "PairwiseCouplingWithFastForest" },
+                    { 2, "OneVersusAllWithFastForest" },
+                    { 3, "PairwiseCouplingWithAveragedPerceptron" },
+                    { 4, "OneVersusAllWithAveragedPerceptron" }
+                });
 
             migrationBuilder.InsertData(
                 table: "Years",
