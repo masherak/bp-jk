@@ -1,8 +1,8 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using FluentValidation.Results;
 using Infrastructure.Enums;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using PredictiveApp.Models;
 using PredictiveApp.Services;
 using PredictiveApp.Validators;
@@ -22,15 +22,17 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-app.MapPost("/predict", async ([FromBody] StudentDataRequest request, IValidator<StudentDataRequest> validator, IWebHostEnvironment environment, PredictionService predictionService) =>
+app.MapPost("/predict", async (
+		[FromBody] StudentDataRequest request,
+		IValidator<StudentDataRequest> validator,
+		IWebHostEnvironment environment,
+		PredictionService predictionService) =>
 	{
 		var validationResult = await validator.ValidateAsync(request);
 
 		if (!validationResult.IsValid)
 		{
-			var errors = validationResult.Errors.Select(e => new { e.PropertyName, e.ErrorMessage });
-
-			return Results.BadRequest(errors);
+			return Results.BadRequest(validationResult.Errors);
 		}
 
 		if (!predictionService.IsTrained())
@@ -46,7 +48,9 @@ app.MapPost("/predict", async ([FromBody] StudentDataRequest request, IValidator
 
 		return Results.Json(response);
 	})
-	.WithOpenApi();
+	.WithOpenApi()
+	.Produces<PredictionResult>()
+	.Produces<IEnumerable<ValidationFailure>>(StatusCodes.Status400BadRequest);
 
 
 app.Run();
