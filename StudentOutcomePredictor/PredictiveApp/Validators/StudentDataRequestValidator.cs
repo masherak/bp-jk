@@ -1,4 +1,5 @@
 using FluentValidation;
+using Infrastructure.Models;
 using PredictiveApp.Models;
 
 namespace PredictiveApp.Validators;

@@ -38,5 +38,6 @@ public record StudentData
     [LoadColumn(31)] public float UnemploymentRate { get; set; }
     [LoadColumn(32)] public float InflationRate { get; set; }
     [LoadColumn(33)] public float Gdp { get; set; }
+
     [LoadColumn(34)] [ColumnName("Label")] public string Target { get; set; }
 }

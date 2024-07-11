@@ -1,4 +1,5 @@
 using Infrastructure.Enums;
+using Infrastructure.Models;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -164,7 +165,7 @@ public class PredictionService
 
     return new PredictionResult
     {
-        PredictedLabel = output.PredictedLabel,
+        PredictedLabel = output.Label,
         PredictionProbabilities = gradePredictionProbabilities,
         Metrics = _trainingResult.Metrics
     };
@@ -266,7 +267,7 @@ public class PredictionService
                 nameof(StudentData.InflationRate),
                 nameof(StudentData.Gdp)))
             .Append(mlContext.Transforms.NormalizeMinMax("Features"))
-            .Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(StudentPrediction.PredictedLabel))),
+            .Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(StudentPrediction.Label))),
 		    _ => throw new ArgumentOutOfRangeException(nameof(pipelineType), pipelineType, null)
 	    };
     }

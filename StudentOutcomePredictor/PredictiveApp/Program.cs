@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using FluentValidation.Results;
 using Infrastructure.Enums;
+using Infrastructure.Models;
 using Microsoft.AspNetCore.Mvc;
 using PredictiveApp.Models;
 using PredictiveApp.Services;

@@ -1,89 +1,51 @@
 ﻿@page "/"
+@using Adapter.Interfaces
+@using WebApp.Models
 @inject ApplicationDbContext Context
 @inject ISnackbar Snackbar
+@inject IAdapter Adapter
 @rendermode InteractiveServer
 
 <MudGrid>
-    <MudItem xs="12" sm="6" md="4">
+    <MudItem md="6">
         <MudPaper Elevation="1" Class="pa-4">
             <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
-                ML Model
-                @if (PredictionService.IsTrained())
-                {
-                    <MudIcon Color="Color.Success" Size="Size.Medium" Icon="@Icons.Material.Filled.CheckCircle"/>
-                }
-                else
-                {
-                    <MudIcon Color="Color.Error" Size="Size.Medium" Icon="@Icons.Material.Filled.ChangeCircle"/>
-                }
+                Správa Adaptéru
             </MudText>
             
             <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
             
-            @if (PredictionService.IsTrained())
-            {
-                if (_metrics != null)
-                {
-                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        <b class="mr-2">Macro accuracy: </b> @_metrics.MacroAccuracy.Round()
-                    </MudText>
-                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        <b class="mr-2">Micro accuracy: </b> @_metrics.MicroAccuracy.Round()
-                    </MudText>
-                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        <b class="mr-2">Log-loss: </b> @_metrics.LogLoss.Round()
-                    </MudText>
-                    <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                        <b class="mr-2">Log-loss reduction: </b> @_metrics.LogLossReduction.Round()
-                    </MudText>
-                }
-            }
-            else
-            {
-                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                    <b class="mr-2">Loading...</b>
-                </MudText>
-            }
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClickAdapterRunAsync">Spustit Adaptér</MudButton>
         </MudPaper>
     </MudItem>
-
-    @if (PredictionService.IsTrained())
-    {
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="1" Class="pa-4">
-                <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
-                    Data
-                </MudText>
-
-                <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
-                
-            </MudPaper>
-        </MudItem>
-        
-        @if (_predictionResult != null)
-        {
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="1" Class="pa-4">
-                    <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
-                        Prediction
-                    </MudText>
-
-                    <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
-
-
-
-                    <MudDivider Style="margin-top: 25px;margin-bottom: 25px"/>
-
-                    @foreach (var predictionProbability in _predictionResult.PredictionProbabilities)
+    <MudItem md="6">
+        <MudPaper Elevation="1" Class="pa-4">
+            <MudText Typo="Typo.h5" Class="d-flex align-center justify-center">
+                Přehled predikcí studentů
+            </MudText>
+            
+            <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
+            <MudGrid>
+                @if (_studentPredictions.Any(_ => !string.IsNullOrWhiteSpace(_.PredictedLabel)))
+                {
+                    @foreach (var studentPrediction in _studentPredictions)
                     {
-                        <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                            Prediction: @predictionProbability.Label (@predictionProbability.Probability.Round()%)
-                        </MudText>
+                        <MudItem md="6"><MudText Typo="Typo.h6" Class="d-flex align-center justify-center">StudentId: @studentPrediction.StudentId</MudText></MudItem>
+                        <MudItem md="6"><MudText Typo="Typo.h6" Class="d-flex align-center justify-center">Predicted Label: @studentPrediction.PredictedLabel</MudText></MudItem>
                     }
-                </MudPaper>
-            </MudItem>
-        }
-    }
+                }
+                else
+                {
+                    <MudItem md="12">
+                        <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
+                            Neexistují žádné predikce
+                        </MudText>
+                    </MudItem>
+                }
+            </MudGrid>
+            <MudButton Disabled="_isTaskRunning" OnClick="OnClickAdapterRunAsync"></MudButton>
+        </MudPaper>
+    </MudItem>
 </MudGrid>
 
 <MudOverlay Visible="_isTaskRunning">
@@ -92,25 +54,31 @@
 
 @code {
     private bool _isTaskRunning;
-    
-    MulticlassClassificationMetrics? _metrics;
 
-    PredictionResult? _predictionResult;
+    private List<StudentPredictionItem> _studentPredictions = [];
 
-    private async Task OnClickPredictAsync()
+    protected override async Task OnInitializedAsync()
+    {
+        _studentPredictions = await Context.Students
+            .Select(_ => new StudentPredictionItem
+            {
+                StudentId = _.StudentId,
+                PredictedLabel = _.PredictedLabel.Label
+            })
+            .OrderBy(_ => _.StudentId)
+            .ToListAsync();
+    }
+
+
+    private async Task OnClickAdapterRunAsync()
     {
         try
         {
             _isTaskRunning = true;
 
-            //_predictionResult = PredictionService.Predict();
-
-            // TODO:
-            _predictionResult = null;
-
-            await Context.SaveChangesAsync();
-
-            Snackbar.Add("Záznam uložen", Severity.Success);
+            await Adapter.ProcessAsync();
+            
+            Snackbar.Add("Adaptér spuštěn", Severity.Success);
         }
         catch (Exception ex)
         {

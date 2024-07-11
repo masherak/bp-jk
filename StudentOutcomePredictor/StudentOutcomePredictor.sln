@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PredictiveApp", "PredictiveApp\PredictiveApp.csproj", "{FFAAE605-4B31-4CB9-8C58-5A9EE2A32453}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adapter", "Adapter\Adapter.csproj", "{DCBDCC19-8511-4B5A-93E3-07A9BE4C20B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{FFAAE605-4B31-4CB9-8C58-5A9EE2A32453}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFAAE605-4B31-4CB9-8C58-5A9EE2A32453}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFAAE605-4B31-4CB9-8C58-5A9EE2A32453}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCBDCC19-8511-4B5A-93E3-07A9BE4C20B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCBDCC19-8511-4B5A-93E3-07A9BE4C20B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCBDCC19-8511-4B5A-93E3-07A9BE4C20B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCBDCC19-8511-4B5A-93E3-07A9BE4C20B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

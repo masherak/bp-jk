@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace PredictiveApp.Models;
+namespace Infrastructure.Models;
 
 public record StudentDataRequest
 {
