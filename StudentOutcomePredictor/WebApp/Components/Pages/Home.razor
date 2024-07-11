@@ -30,8 +30,8 @@
                 {
                     @foreach (var studentPrediction in _studentPredictions)
                     {
-                        <MudItem md="6"><MudText Typo="Typo.h6" Class="d-flex align-center justify-center">StudentId: @studentPrediction.StudentId</MudText></MudItem>
-                        <MudItem md="6"><MudText Typo="Typo.h6" Class="d-flex align-center justify-center">Predicted Label: @studentPrediction.PredictedLabel</MudText></MudItem>
+                        <MudItem md="6"><MudText Typo="Typo.body1" Class="d-flex align-center justify-center">StudentId: <b>@studentPrediction.StudentId</b></MudText></MudItem>
+                        <MudItem md="6"><MudText Typo="Typo.body1" Class="d-flex align-center justify-center">Predicted Label: <b>@studentPrediction.PredictedLabel</b></MudText></MudItem>
                     }
                 }
                 else
@@ -90,3 +90,4 @@
         }
     }
 }
+
