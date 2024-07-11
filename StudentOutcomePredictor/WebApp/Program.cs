@@ -2,7 +2,6 @@ using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
-using PredictorApp.Services;
 using WebApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,8 +25,6 @@ builder.Services.AddMudServices(_ =>
 builder.Services
 	.AddDbContext<ApplicationDbContext>(options =>
 		options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddSingleton<PredictionService>();
 
 var app = builder.Build();
 

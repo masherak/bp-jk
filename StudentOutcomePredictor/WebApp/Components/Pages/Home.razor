@@ -1,7 +1,5 @@
 ﻿@page "/"
-@using Infrastructure.Enums
 @inject ApplicationDbContext Context
-@inject PredictionService PredictionService
 @inject ISnackbar Snackbar
 @rendermode InteractiveServer
 
@@ -24,20 +22,6 @@
             
             @if (PredictionService.IsTrained())
             {
-                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                    <b class="mr-2">Dataset: </b> @PredictionService.GetDatasetName
-                </MudText>
-                
-                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                    <b class="mr-2">Pipeline: </b> @PredictionService.GetPipelineType
-                </MudText>
-                
-                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                    <b class="mr-2">Trainer: </b> @PredictionService.GetTrainerType
-                </MudText>
-                
-                <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
-                
                 if (_metrics != null)
                 {
                     <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
@@ -53,57 +37,12 @@
                         <b class="mr-2">Log-loss reduction: </b> @_metrics.LogLossReduction.Round()
                     </MudText>
                 }
-                
-                <MudButton Disabled="_isTaskRunning" Style="margin-top: 25px" OnClick="ResetModel" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                    Reset
-                </MudButton>
             }
             else
             {
-                <MudSelect T="string?" Label="Vyberte dataset" @bind-Value="_selectedDataset">
-                    @if (_datasets != null)
-                    {
-                        foreach (var dataset in _datasets)
-                        {
-                            <MudSelectItem T="string?" Value="@dataset"/>
-                        }
-                    }
-                </MudSelect>
-                
-                <MudSelect T="string?" Label="Vyberte pipeline" @bind-Value="_selectedPipeline">
-                    @if (_pipelines != null)
-                    {
-                        foreach (var pipeline in _pipelines)
-                        {
-                            <MudSelectItem T="string?" Value="@pipeline"/>
-                        }
-                    }
-                </MudSelect>
-                
-                <MudSelect T="string?" Label="Vyberte trenéra" @bind-Value="_selectedTrainer">
-                    @if (_trainers != null)
-                    {
-                        foreach (var trainer in _trainers)
-                        {
-                            <MudSelectItem T="string?" Value="@trainer"/>
-                        }
-                    }
-                </MudSelect>
-
-                @if (!string.IsNullOrWhiteSpace(_selectedDataset) && !string.IsNullOrWhiteSpace(_selectedPipeline) && !string.IsNullOrWhiteSpace(_selectedTrainer))
-                {
-                    <MudButton  Style="margin-top: 25px" Disabled="@_isTaskRunning" OnClick="OnClickTrainAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                        @if (_isTaskRunning)
-                        {
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                            <MudText Typo="Typo.button" Class="ms-2">Trénuji...</MudText>
-                        }
-                        else
-                        {
-                            <MudText Typo="Typo.button">Trénovat</MudText>
-                        }
-                    </MudButton>
-                }
+                <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
+                    <b class="mr-2">Loading...</b>
+                </MudText>
             }
         </MudPaper>
     </MudItem>
@@ -117,56 +56,7 @@
                 </MudText>
 
                 <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
-
-                <MudSelect T="string?" Label="Vyberte studijní obor" ValueChanged="OnChangeStudyFieldAsync">
-                    @if (_studyFields != null)
-                    {
-                        foreach (var studyField in _studyFields)
-                        {
-                            <MudSelectItem T="string?" Value="@studyField"/>
-                        }
-                    }
-                </MudSelect>
-
-                @if (!string.IsNullOrWhiteSpace(_selectedStudyField))
-                {
-                    <MudSelect T="int?" Label="Vyberte ročník" ValueChanged="OnChangeSelectedYear">
-                        @if (_years != null)
-                        {
-                            foreach (var year in _years)
-                            {
-                                <MudSelectItem T="int?" Value="@year"/>
-                            }
-                        }
-                    </MudSelect>
-
-                    <MudSelect T="string?" Label="Vyberte předmět" @bind-Value="_selectedSubject">
-                        @if (_subjects != null)
-                        {
-                            foreach (var subject in _subjects)
-                            {
-                                <MudSelectItem T="string?" Value="@subject"/>
-                            }
-                        }
-                    </MudSelect>
-
-                    @if (_selectedYear.HasValue)
-                    {
-                        <MudSelect T="int?" Label="Vyberte věk" @bind-Value="_selectedAge">
-                            @foreach (var age in _ages)
-                            {
-                                <MudSelectItem T="int?" Value="@(age.Value + _selectedYear.Value)"/>
-                            }
-                        </MudSelect>
-                    }
-                }
-
-                @if (_selectedAge.HasValue && !string.IsNullOrWhiteSpace(_selectedStudyField) && _selectedYear.HasValue && !string.IsNullOrWhiteSpace(_selectedSubject))
-                {
-                    <MudButton Disabled="_isTaskRunning" Style="margin-top: 25px" OnClick="OnClickPredictAsync" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                        <MudText Typo="Typo.button">Predikuj známku</MudText>
-                    </MudButton>
-                }
+                
             </MudPaper>
         </MudItem>
         
@@ -180,16 +70,14 @@
 
                     <MudDivider Style="margin-top: 5px;margin-bottom: 25px"/>
 
-                    <MudText Typo="Typo.h6" Class="d-flex align-center justify-center">
-                        Predicted Grade: <b class="ml-2">@_predictionResult.PredictedGrade</b>
-                    </MudText>
+
 
                     <MudDivider Style="margin-top: 25px;margin-bottom: 25px"/>
 
-                    @foreach (var gradeProbability in _predictionResult.GradePredictionProbabilities)
+                    @foreach (var predictionProbability in _predictionResult.PredictionProbabilities)
                     {
                         <MudText Typo="Typo.body1" Class="d-flex align-center justify-center">
-                            Grade: @gradeProbability.Grade (@gradeProbability.Probability.Round()%)
+                            Prediction: @predictionProbability.Label (@predictionProbability.Probability.Round()%)
                         </MudText>
                     }
                 </MudPaper>
@@ -204,117 +92,21 @@
 
 @code {
     private bool _isTaskRunning;
-
-    string? _selectedDataset;
-    ICollection<string>? _datasets;
     
-    string? _selectedPipeline;
-    ICollection<string>? _pipelines;
-    
-    string? _selectedTrainer;
-    ICollection<string>? _trainers;
-    
-    int? _selectedAge;
-    readonly ICollection<int?> _ages = Enumerable.Range(17, 14).Select(_ => (int?)_).ToList();
-    
-    string? _selectedStudyField;
-    ICollection<string>? _studyFields;
-    
-    int? _selectedYear;
-    ICollection<int?>? _years;
-    
-    string? _selectedSubject;
-    ICollection<string>? _subjects;
-
     MulticlassClassificationMetrics? _metrics;
 
     PredictionResult? _predictionResult;
-    
-    protected override async Task OnInitializedAsync()
-    {
-        _datasets = await Context.DatasetFiles.OrderByDescending(_ => _.Created).Select(_ => _.Name).ToListAsync();
 
-        _pipelines = await Context.PipelineTypes.Select(_ => _.Name).ToListAsync();
-
-        _trainers = await Context.TrainerTypes.Select(_ => _.Name).ToListAsync();
-        
-        _studyFields = await Context.StudyFields.Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
-
-        _years = await Context.Years.Select(_ => (int?)_.Year).OrderBy(_ => _).ToListAsync();
-
-        _metrics = PredictionService.GetMetrics();
-    }
-
-    async Task OnClickTrainAsync()
+    private async Task OnClickPredictAsync()
     {
         try
         {
             _isTaskRunning = true;
 
-            var datasetContent = await Context.DatasetFiles.Where(_ => _.Name == _selectedDataset).Select(_ => _.Content).SingleAsync();
+            //_predictionResult = PredictionService.Predict();
 
-            var pipelineType = Enum.Parse<PipelineTypeEnum>(_selectedPipeline ?? string.Empty);
-
-            var trainerType = Enum.Parse<TrainerTypeEnum>(_selectedTrainer ?? string.Empty);
-            
-            _metrics = await PredictionService.TrainAsync(datasetContent, _selectedDataset, pipelineType, trainerType);
-        }
-        finally
-        {
-            _isTaskRunning = false;
-        }
-    }
-    
-    async Task OnChangeStudyFieldAsync(string? value)
-    {
-        _selectedStudyField = value;
-
-        _selectedSubject = null;
-        
-        _subjects = await Context.Subjects.Where(_ => _.StudyField.Name == value).Select(_ => _.Name).OrderBy(_ => _).ToListAsync();
-    }
-
-    void OnChangeSelectedYear(int? value)
-    {
-        _selectedYear = value;
-
-        _selectedAge = null;
-    }
-
-    async Task OnClickPredictAsync()
-    {
-        try
-        {
-            _isTaskRunning = true;
-
-            _predictionResult = PredictionService.PredictGrade(_selectedAge.Value, _selectedStudyField, _selectedYear.Value, _selectedSubject);
-
-            var predictionHistory = new PredictionHistory
-            {
-                DatasetFileId = await Context.DatasetFiles
-                    .Where(_ => _.Name == PredictionService.GetDatasetName)
-                    .Select(_ => _.Id)
-                    .SingleAsync(),
-                PipelineTypeId = PredictionService.GetPipelineType.Value,
-                TrainerTypeId = PredictionService.GetTrainerType.Value,
-                StudyFieldId = await Context.StudyFields
-                    .Where(_ => _.Name == _selectedStudyField)
-                    .Select(_ => _.Id)
-                    .SingleAsync(),
-                YearId = await Context.Years
-                    .Where(_ => _.Year == _selectedYear.Value)
-                    .Select(_ => _.Id)
-                    .SingleAsync(),
-                SubjectId = await Context.Subjects
-                    .Where(_ => _.Name == _selectedSubject && _.StudyField.Name == _selectedStudyField)
-                    .Select(_ => _.Id)
-                    .SingleAsync(),
-                Age = _selectedAge.Value,
-                PredictedGrade = _predictionResult.PredictedGrade,
-                Created = DateTime.UtcNow
-            };
-
-            await Context.PredictionHistories.AddAsync(predictionHistory);
+            // TODO:
+            _predictionResult = null;
 
             await Context.SaveChangesAsync();
 
@@ -328,18 +120,5 @@
         {
             _isTaskRunning = false;
         }
-    }
-
-    void ResetModel()
-    {
-        _selectedAge = null;
-        _selectedStudyField = null;
-        _selectedYear = null;
-        _selectedSubject = null;
-        
-        _predictionResult = null;
-        _metrics = null;
-        
-        PredictionService.Reset();
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace PredictorApp.Models;
+namespace PredictiveApp.Models;
 
 public record TrainingResult
 {

@@ -1,6 +1,6 @@
 using Microsoft.ML.Data;
 
-namespace PredictorApp.Sources;
+namespace PredictiveApp.Sources;
 
 public class InMemoryMultiStreamSource(byte[] data) : IMultiStreamSource
 {
