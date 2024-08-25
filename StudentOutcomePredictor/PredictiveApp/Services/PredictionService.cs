@@ -155,7 +155,7 @@ public class PredictionService
 
     var scores = output.Score;
 
-    var classNames = new[] { "Dropout", "Graduate", "Still Enrolled" };
+    var classNames = new[] { "Dropout", "Graduate", "Enrolled" };
     var probabilities = scores.ToArray();
     var gradePredictionProbabilities = probabilities.Select((probability, index) => new PredictionProbability
     {
@@ -165,7 +165,7 @@ public class PredictionService
 
     return new PredictionResult
     {
-        PredictedLabel = output.Label,
+        PredictedLabel = output.PredictedLabel,
         PredictionProbabilities = gradePredictionProbabilities,
         Metrics = _trainingResult.Metrics
     };
@@ -188,15 +188,19 @@ public class PredictionService
 
         var trainingDataView = textLoader.Load(inMemoryMultiStreamSource);
 
+        var splitTrainingDataView = mlContext.Data.TrainTestSplit(trainingDataView);
+
         var dataProcessPipeline = ResolvePipeline(mlContext, pipelineType);
 
         var trainer = ResolveTrainer(mlContext, trainerType);
 
         var trainingPipeline = dataProcessPipeline.Append(trainer);
 
-        var transformer = trainingPipeline.Fit(trainingDataView);
+        trainingPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(StudentPrediction.PredictedLabel)));
 
-        var predictions = transformer.Transform(trainingDataView);
+        var transformer = trainingPipeline.Fit(splitTrainingDataView.TrainSet);
+
+        var predictions = transformer.Transform(splitTrainingDataView.TestSet);
 
         var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
 
@@ -207,11 +211,11 @@ public class PredictionService
         };
     }
 
-    private static EstimatorChain<KeyToValueMappingTransformer> ResolvePipeline(MLContext mlContext, PipelineTypeEnum pipelineType)
+    private static EstimatorChain<NormalizingTransformer> ResolvePipeline(MLContext mlContext, PipelineTypeEnum pipelineType)
     {
 	    return pipelineType switch
 	    {
-		    PipelineTypeEnum.Default => mlContext.Transforms.Conversion.MapValueToKey(nameof(StudentData.Target))
+		    PipelineTypeEnum.Default => mlContext.Transforms.Conversion.MapValueToKey(nameof(StudentData.Label))
             .Append(mlContext.Transforms.Categorical.OneHotEncoding([
 	            new InputOutputColumnPair(nameof(StudentData.MaritalStatus)),
                 new InputOutputColumnPair(nameof(StudentData.ApplicationMode)),
@@ -266,8 +270,7 @@ public class PredictionService
                 nameof(StudentData.UnemploymentRate),
                 nameof(StudentData.InflationRate),
                 nameof(StudentData.Gdp)))
-            .Append(mlContext.Transforms.NormalizeMinMax("Features"))
-            .Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(StudentPrediction.Label))),
+            .Append(mlContext.Transforms.NormalizeMinMax("Features")),
 		    _ => throw new ArgumentOutOfRangeException(nameof(pipelineType), pipelineType, null)
 	    };
     }

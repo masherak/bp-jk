@@ -20,6 +20,7 @@ public class DefaultAdapter(
 	public async Task ProcessAsync()
 	{
 		var students = await context.Students
+			.Where(_ => _.StudentPerformances.Count != 0 && _.EconomicIndicators.Count != 0)
             .Select(student => new {
 	            Entity = student,
 	            StudentDataRequest = new StudentDataRequest
